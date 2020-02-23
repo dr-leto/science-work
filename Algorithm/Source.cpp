@@ -21,19 +21,20 @@ using std::getline;
 using std::istringstream;
 using std::endl;
 
-struct Transmission_prop {
-    vector<int> tree;
-    vector<vector<int>> net;
-    int s;
+typedef vector<int> arr;
+typedef vector<vector<int>> matrix;
 
-    Transmission_prop(vector<int> tree, vector<vector<int>> net, int s) {
-        this->tree = tree;
-        this->net = net;
-        this->s = s;
+struct Max_trees {
+    arr max_v_deg_tree;
+    arr max_n_term_edge_tree;
+
+    Max_trees(arr max_v_deg_tree, arr max_n_term_edge_tree) {
+        this->max_v_deg_tree = max_v_deg_tree;
+        this->max_n_term_edge_tree = max_n_term_edge_tree;
     }
 };
 
-void leaves_random_color(vector<int>& shape, int k_num) {
+void leaves_random_color(arr& shape, int k_num) {
     srand(time(NULL));
     for (unsigned int i = 0; i < shape.size(); ++i) {
         if (shape[i] == 0) {
@@ -49,9 +50,9 @@ void leaves_random_color(vector<int>& shape, int k_num) {
     }
 }
 
-vector<int> Generate_random_tree(int max_height, int k_num) {
+arr Generate_random_tree(int max_height, int k_num) {
     int shape_size = pow(2, max_height + 1) - 1;
-    vector<int> tree_shape(shape_size, -1);
+    arr tree_shape(shape_size, -1);
     tree_shape[0] = 0;
     srand(time(NULL));
     // int num_it = rand() % shape_size + 2;
@@ -60,7 +61,7 @@ vector<int> Generate_random_tree(int max_height, int k_num) {
     nodes.insert(0);
 
     for (int i = 0; i < num_it; ++i) {
-        vector<int> nodes_vec(nodes.size(), 0);
+        arr nodes_vec(nodes.size(), 0);
         std::copy(nodes.begin(), nodes.end(), nodes_vec.begin());
         int index = nodes_vec[rand() % nodes.size()];
         if (index > shape_size / 2 - 2) {
@@ -89,22 +90,22 @@ vector<int> Generate_random_tree(int max_height, int k_num) {
     return tree_shape;
 }
 
-vector<int> Merge_shapes(const vector<int>& left_shape, const vector<int>& right_shape) {
-    vector<int> new_shape;
+arr Merge_shapes(const arr& left_shape, const arr& right_shape) {
+    arr new_shape;
     for (unsigned int i = 0; i < left_shape.size(); ++i) {
         new_shape.push_back((left_shape[i] != 0) ? left_shape[i] : right_shape[i]);
     }
     return new_shape;
 }
 
-vector<vector<int>> Generate_all_transm_trees(const int root_id, vector<int>& shape) {
-    vector<vector<int>> left_shapes, right_shapes, possible_shapes;
+matrix Generate_all_transm_trees(const int root_id, arr& shape) {
+    matrix left_shapes, right_shapes, possible_shapes;
 
     unsigned int left_child_id = 2 * root_id + 1;
     unsigned int right_child_id = 2 * root_id + 2;
 
     if ((shape.size() <= left_child_id) || (shape[left_child_id] < 0 && shape[right_child_id] < 0)) {
-        return vector<vector<int>>{ shape };
+        return matrix{ shape };
     }
     if (shape[left_child_id] < 0) { //when left child is empty
         possible_shapes = Generate_all_transm_trees(right_child_id, shape);
@@ -140,9 +141,9 @@ vector<vector<int>> Generate_all_transm_trees(const int root_id, vector<int>& sh
     return possible_shapes;
 }
 
-vector<vector<int>> Build_transm_network(vector<int> transm_tree) {
+matrix Build_transm_network(arr transm_tree) {
     int max_val = *std::max_element(transm_tree.begin(), transm_tree.end());
-    vector<vector<int>> transm_network(max_val + 1, vector<int>());
+    matrix transm_network(max_val + 1, arr());
     set<pair<int, int>> pairs;
     for (unsigned int i = 0; i < (transm_tree.size() - 1) / 2; ++i) {
         int left_child_id = 2 * i + 1;
@@ -166,9 +167,9 @@ vector<vector<int>> Build_transm_network(vector<int> transm_tree) {
     return transm_network;
 }
 
-bool Check_connection(vector<vector<int>> transm_net) {
+bool Check_connection(matrix transm_net) {
     vector<bool> visited(transm_net.size(), false);
-    vector<int> stack;
+    arr stack;
     stack.push_back(0);
     while (!stack.empty()) {
         int cur_v = stack.back();
@@ -183,36 +184,32 @@ bool Check_connection(vector<vector<int>> transm_net) {
     return std::all_of(visited.begin(), visited.end(), [](bool v) { return v; });
 }
 
-int Num_of_terminal_edge(vector<vector<int>> transm_net) {
+int Num_of_terminal_edge(matrix transm_net) {
     int num = 0;
-    for (const vector<int>& neighbors : transm_net) {
+    for (const arr& neighbors : transm_net) {
         num += neighbors.size() == 1 ? 1 : 0;
     }
     return num;
 }
 
-int Max_vertex_degree(vector<vector<int>> transm_net) {
+int Max_vertex_degree(matrix transm_net) {
     return (*std::max_element(transm_net.begin(), transm_net.end(),
-        [](const vector<int>& l_net,const vector<int>& r_net) { return l_net.size() < r_net.size(); })).size();
+        [](const arr& l_net,const arr& r_net) { return l_net.size() < r_net.size(); })).size();
 }
 
-//Transmission_prop Get_max_s_net(vector<vector<int>> transm_trees) {
-//    vector<vector<int>> best_net;
-//    vector<int> best_tree;
-//    int max_s = 0;
-//    for (const auto& tree : transm_trees) {
-//        auto net = Build_transm_network(tree);
-//        int s = Calc_s_metric(net);
-//        if (s > max_s) {
-//            best_net = net;
-//            best_tree = tree;
-//            max_s = s;
-//        }
-//    }
-//    return Transmission_prop(best_tree, best_net, max_s);
-//}
+Max_trees Get_max_trees(matrix transm_trees) {
+    arr max_v_deg_tree = *std::max_element(transm_trees.begin(), transm_trees.end(),
+        [](const arr& tree_l, const arr& tree_r)
+        {return Max_vertex_degree(Build_transm_network(tree_l)) < Max_vertex_degree(Build_transm_network(tree_r)); });
 
-void Save_trees(vector<vector<int>> shapes, string path) {
+    arr max_n_term_edge_tree = *std::max_element(transm_trees.begin(), transm_trees.end(),
+        [](const arr& tree_l, const arr& tree_r)
+        { return Num_of_terminal_edge(Build_transm_network(tree_l)) < Num_of_terminal_edge(Build_transm_network(tree_r)); });
+
+    return Max_trees(max_v_deg_tree, max_n_term_edge_tree);
+}
+
+void Save_trees(matrix shapes, string path) {
     ofstream fout(path);
     for (unsigned int i = 0; i < shapes.size(); ++i) {
         for (int el : shapes[i]) {
@@ -222,14 +219,14 @@ void Save_trees(vector<vector<int>> shapes, string path) {
     }
     fout.close();
 }
-vector<vector<int>> Read_trees(string path) {
+matrix Read_trees(string path) {
     ifstream fin(path);
     string row;
-    vector<vector<int>> shapes;
+    matrix shapes;
     while (getline(fin, row)) {
         int num;
         istringstream n_stream(row);
-        vector<int> shape;
+        arr shape;
         while (n_stream >> num) {
             shape.push_back(num);
         }
@@ -239,10 +236,10 @@ vector<vector<int>> Read_trees(string path) {
     return shapes;
 }
 
-void Save_transm_net(vector<vector<int>> transm_net, string path, int s = 0) {
+void Save_transm_net(matrix transm_net, string path, int param = 0) {
     ofstream fout(path);
-    if (s != 0) {
-        fout << s << endl;
+    if (param != 0) {
+        fout << param << endl;
     }
     for (unsigned int i = 0; i < transm_net.size(); ++i) {
         if (!transm_net[i].empty()) {
@@ -257,23 +254,28 @@ void Save_transm_net(vector<vector<int>> transm_net, string path, int s = 0) {
 }
 
 int main() {
-    vector<int> simple_shape = Generate_random_tree(5, 4);
-    Save_trees(vector<vector<int>>{ simple_shape }, "shape.txt");
-    vector<int> shape = Read_trees("shape.txt")[0];
-    // vector<int>{ 0, 0, 0, 0, 0, 4, 0, 1, 0, 0, 1, -1, -1, 0, 0, -1, -1, 1, 2, 3, 2, -1, -1, -1, -1, -1, -1, 1, 2, 3, 4};
-
-   vector<vector<int>> possible_trees = Generate_all_transm_trees(0, shape);
+    arr simple_shape = Generate_random_tree(5, 4);
+    Save_trees(matrix{ simple_shape }, "shape.txt");
+    
+    arr shape = Read_trees("shape.txt")[0];
+    // array{ 0, 0, 0, 0, 0, 4, 0, 1, 0, 0, 1, -1, -1, 0, 0, -1, -1, 1, 2, 3, 2, -1, -1, -1, -1, -1, -1, 1, 2, 3, 4};
+    matrix possible_trees = Generate_all_transm_trees(0, shape);
     Save_trees(possible_trees, "possible_trees.txt");
-    vector<vector<int>> trees = Read_trees("possible_trees.txt");
-    Transmission_prop best_prop = Get_max_s_net(trees);
-    Save_trees(vector<vector<int>>{ best_prop.tree }, "best_tree.txt");
-    Save_transm_net(best_prop.net, "best_net.txt", best_prop.s);
 
-    vector<int> heuristic_transm_tree = Build_heuristic_transm_tree(shape);
-    Save_trees(vector<vector<int>>{heuristic_transm_tree}, "heuristic_tree.txt");
-    vector<vector<int>> heuristic_transm_net = Build_transm_network(heuristic_transm_tree);
-    int heuristic_s = Calc_s_metric(heuristic_transm_net);
-    Save_transm_net(heuristic_transm_net, "heuristic_net.txt", heuristic_s);
+    matrix trees = Read_trees("possible_trees.txt");
+    Max_trees max_trees = Get_max_trees(trees);
+
+    arr max_v_deg_tree = max_trees.max_v_deg_tree;
+    matrix max_v_deg_net = Build_transm_network(max_v_deg_tree);
+    int max_v_deg = Max_vertex_degree(max_v_deg_net);
+    Save_trees(matrix{ max_v_deg_tree }, "max_v_deg_tree.txt");
+    Save_transm_net(max_v_deg_net, "max_v_deg_net.txt", max_v_deg);
+
+    arr max_n_term_edge_tree = max_trees.max_n_term_edge_tree;
+    matrix max_n_term_edge_net = Build_transm_network(max_n_term_edge_tree);
+    int max_n_term_edge = Num_of_terminal_edge(max_n_term_edge_net);
+    Save_trees(matrix{ max_n_term_edge_tree }, "max_n_term_edge_tree.txt");
+    Save_transm_net(max_n_term_edge_net, "max_n_term_edge_net.txt", max_n_term_edge);
 
     return 0;
 }
