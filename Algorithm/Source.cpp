@@ -21,12 +21,12 @@ using std::getline;
 using std::istringstream;
 using std::endl;
 
-struct TransmissionProp {
+struct Transmission_prop {
     vector<int> tree;
     vector<vector<int>> net;
     int s;
 
-    TransmissionProp(vector<int> tree, vector<vector<int>> net, int s) {
+    Transmission_prop(vector<int> tree, vector<vector<int>> net, int s) {
         this->tree = tree;
         this->net = net;
         this->s = s;
@@ -140,71 +140,8 @@ vector<vector<int>> Generate_all_transm_trees(const int root_id, vector<int>& sh
     return possible_shapes;
 }
 
-bool Comp_by_arr_len(const vector<int>& a, const vector<int>& b) {
-    return (a.size() > b.size());
-}
-
-int Get_longest_path_start_pos(const vector<int>& shape, const vector<int>& start_poses) {
-    int max_path_len = 0, best_start_pos = start_poses[0];
-    for (int start_pos : start_poses) {
-        int cur_pos = start_pos;
-        int cur_parent_pos = (start_pos + 1) / 2 - 1;
-        if (shape[cur_parent_pos] != 0) {
-            continue;
-        }
-        int path_len = 0;
-        while (cur_pos != 0 && shape[cur_parent_pos] == 0) {
-            cur_pos = cur_parent_pos;
-            cur_parent_pos = (cur_pos + 1) / 2 - 1;
-            ++path_len;
-        }
-        if (max_path_len < path_len) {
-            max_path_len = path_len;
-            best_start_pos = start_pos;
-        }
-    }
-    return best_start_pos;
-}
-
-void Color_path(vector<int>& shape, const int start_pos) {
-    int cur_pos = start_pos;
-    int cur_parent_pos = (start_pos + 1) / 2 - 1;
-    while (cur_pos != 0 && shape[cur_parent_pos] == 0) {
-        shape[cur_parent_pos] = shape[cur_pos];
-        cur_pos = cur_parent_pos;
-        cur_parent_pos = (cur_pos + 1) / 2 - 1;
-    }
-}
-
-vector<int> Build_heuristic_transm_tree(vector<int> shape) {
-    int max_val = *std::max_element(shape.begin(), shape.end() - 1);
-    vector<vector<int>> val_to_pos(max_val + 1, vector<int>());
-    for (unsigned int i = 0; i < shape.size(); ++i) {
-        if (shape[i] > 0) {
-            val_to_pos[shape[i]].push_back(int(i));
-        }
-    }
-
-    std::sort(val_to_pos.begin(), val_to_pos.end(), Comp_by_arr_len);
-    for (unsigned int i = 0; i < val_to_pos.size(); ++i) {
-        if (!val_to_pos[i].empty()) {
-            vector<int> cur_poses = val_to_pos[i]; //
-            int best_start_pos = Get_longest_path_start_pos(shape, cur_poses);
-            Color_path(shape, best_start_pos);
-        }
-    }
-
-    std::reverse(val_to_pos.begin(), val_to_pos.end());
-    for (unsigned int i = 0; i < val_to_pos.size(); ++i) {
-        for (int cur_pos : val_to_pos[i]) {
-            Color_path(shape, cur_pos);
-        }
-    }
-    return shape;
-}
-
 vector<vector<int>> Build_transm_network(vector<int> transm_tree) {
-    int max_val = *std::max_element(transm_tree.begin(), transm_tree.end() - 1);
+    int max_val = *std::max_element(transm_tree.begin(), transm_tree.end());
     vector<vector<int>> transm_network(max_val + 1, vector<int>());
     set<pair<int, int>> pairs;
     for (unsigned int i = 0; i < (transm_tree.size() - 1) / 2; ++i) {
@@ -229,38 +166,51 @@ vector<vector<int>> Build_transm_network(vector<int> transm_tree) {
     return transm_network;
 }
 
-int Calc_s_metric(vector<vector<int>> transm_network) { //first change in the new branch
-    vector<int> deg_arr;
-    for (auto net : transm_network) {
-        if (!net.empty()) {
-            deg_arr.push_back(net.size());
+bool Check_connection(vector<vector<int>> transm_net) {
+    vector<bool> visited(transm_net.size(), false);
+    vector<int> stack;
+    stack.push_back(0);
+    while (!stack.empty()) {
+        int cur_v = stack.back();
+        visited[cur_v] = true;
+        stack.pop_back();
+        for (int v : transm_net[cur_v]) {
+            if (!visited[v]) {
+                stack.push_back(v);
+            }
         }
     }
-    int s_metric = 0;
-    for (unsigned int i = 0; i < deg_arr.size(); ++i) {
-        for (unsigned int j = i + 1; j < deg_arr.size(); ++j) {
-            s_metric += deg_arr[i] * deg_arr[j];
-        }
-    }
-    return s_metric;
+    return std::all_of(visited.begin(), visited.end(), [](bool v) { return v; });
 }
 
-TransmissionProp Get_max_s_net(vector<vector<int>> transm_trees) {
-    int max_val = *std::max_element(transm_trees[0].begin(), transm_trees[0].end() - 1);
-    vector<vector<int>> best_net;
-    vector<int> best_tree;
-    int max_s = 0;
-    for (const auto& tree : transm_trees) {
-        auto net = Build_transm_network(tree);
-        int s = Calc_s_metric(net);
-        if (s > max_s) {
-            best_net = net;
-            best_tree = tree;
-            max_s = s;
-        }
+int Num_of_terminal_edge(vector<vector<int>> transm_net) {
+    int num = 0;
+    for (const vector<int>& neighbors : transm_net) {
+        num += neighbors.size() == 1 ? 1 : 0;
     }
-    return TransmissionProp(best_tree, best_net, max_s);
+    return num;
 }
+
+int Max_vertex_degree(vector<vector<int>> transm_net) {
+    return (*std::max_element(transm_net.begin(), transm_net.end(),
+        [](const vector<int>& l_net,const vector<int>& r_net) { return l_net.size() < r_net.size(); })).size();
+}
+
+//Transmission_prop Get_max_s_net(vector<vector<int>> transm_trees) {
+//    vector<vector<int>> best_net;
+//    vector<int> best_tree;
+//    int max_s = 0;
+//    for (const auto& tree : transm_trees) {
+//        auto net = Build_transm_network(tree);
+//        int s = Calc_s_metric(net);
+//        if (s > max_s) {
+//            best_net = net;
+//            best_tree = tree;
+//            max_s = s;
+//        }
+//    }
+//    return Transmission_prop(best_tree, best_net, max_s);
+//}
 
 void Save_trees(vector<vector<int>> shapes, string path) {
     ofstream fout(path);
@@ -312,10 +262,10 @@ int main() {
     vector<int> shape = Read_trees("shape.txt")[0];
     // vector<int>{ 0, 0, 0, 0, 0, 4, 0, 1, 0, 0, 1, -1, -1, 0, 0, -1, -1, 1, 2, 3, 2, -1, -1, -1, -1, -1, -1, 1, 2, 3, 4};
 
-    vector<vector<int>> possible_trees = Generate_all_transm_trees(0, shape);
+   vector<vector<int>> possible_trees = Generate_all_transm_trees(0, shape);
     Save_trees(possible_trees, "possible_trees.txt");
     vector<vector<int>> trees = Read_trees("possible_trees.txt");
-    TransmissionProp best_prop = Get_max_s_net(trees);
+    Transmission_prop best_prop = Get_max_s_net(trees);
     Save_trees(vector<vector<int>>{ best_prop.tree }, "best_tree.txt");
     Save_transm_net(best_prop.net, "best_net.txt", best_prop.s);
 
