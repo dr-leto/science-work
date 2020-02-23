@@ -229,7 +229,7 @@ vector<vector<int>> Build_transm_network(vector<int> transm_tree) {
     return transm_network;
 }
 
-int Calc_s_metric(vector<vector<int>> transm_network) {
+int Calc_s_metric(vector<vector<int>> transm_network) { //first change in the new branch
     vector<int> deg_arr;
     for (auto net : transm_network) {
         if (!net.empty()) {
