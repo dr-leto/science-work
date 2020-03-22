@@ -21,18 +21,6 @@ using std::getline;
 using std::istringstream;
 using std::endl;
 
-struct TransmissionProp {
-    vector<int> tree;
-    vector<vector<int>> net;
-    int s;
-
-    TransmissionProp(vector<int> tree, vector<vector<int>> net, int s) {
-        this->tree = tree;
-        this->net = net;
-        this->s = s;
-    }
-};
-
 void leaves_random_color(vector<int>& shape, int k_num) {
     srand(time(NULL));
     for (unsigned int i = 0; i < shape.size(); ++i) {
@@ -89,6 +77,63 @@ vector<int> Generate_random_tree(int max_height, int k_num) {
     return tree_shape;
 }
 
+vector<int> Prune_tree(vector<int> shape) {
+    for (int i = shape.size() - 1; i > -1; --i) {
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        if (shape[i] == 0) {
+            if (shape[right] == shape[left] && shape[left] > 0) {
+                shape[i] = shape[left];
+                shape[left] = -1;
+                shape[right] = -1;
+            }
+            if (shape[left] > 0 && shape[right] == -1) {
+                shape[i] = shape[left];
+                shape[left] = -1;
+            }
+            if (shape[right] > 0 && shape[left] == -1) {
+                shape[i] = shape[right];
+                shape[right] = -1;
+            }
+        }
+    }
+    int new_height = 0;
+    for (int i = shape.size() - 1; i > -1; --i) {
+        if (shape[i] > 0) {
+            new_height = std::log(i + 1) / std::log(2);
+            break;
+        }
+    }
+    vector<int> pruned_tree;
+    for (int i = 0; i < pow(new_height + 1, 2) - 1; ++i) {
+        pruned_tree.push_back(shape[i]);
+    }
+    return pruned_tree;
+}
+
+vector<int> Random_tree_color(vector<int> shape) {
+    srand(time(NULL));
+    for (int i = shape.size() - 1; i > -1; --i) {
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        if (shape[i] == 0) {
+            if (shape[right] > 0 && shape[left] > 0) {
+                shape[i] = (rand() % 2 == 0) ? shape[left] : shape[right];
+            }
+            if (shape[left] > 0 && shape[right] == -1) {
+                shape[i] = shape[left];
+                shape[left] = -1;
+            }
+            if (shape[right] > 0 && shape[left] == -1) {
+                shape[i] = shape[right];
+                shape[right] = -1;
+            }
+        }
+    }
+    return shape;
+}
+
+
 vector<int> Merge_shapes(const vector<int>& left_shape, const vector<int>& right_shape) {
     vector<int> new_shape;
     for (unsigned int i = 0; i < left_shape.size(); ++i) {
@@ -140,33 +185,7 @@ vector<vector<int>> Generate_all_transm_trees(const int root_id, vector<int>& sh
     return possible_shapes;
 }
 
-bool Comp_by_arr_len(const vector<int>& a, const vector<int>& b) {
-    return (a.size() > b.size());
-}
-
-int Get_longest_path_start_pos(const vector<int>& shape, const vector<int>& start_poses) {
-    int max_path_len = 0, best_start_pos = start_poses[0];
-    for (int start_pos : start_poses) {
-        int cur_pos = start_pos;
-        int cur_parent_pos = (start_pos + 1) / 2 - 1;
-        if (shape[cur_parent_pos] != 0) {
-            continue;
-        }
-        int path_len = 0;
-        while (cur_pos != 0 && shape[cur_parent_pos] == 0) {
-            cur_pos = cur_parent_pos;
-            cur_parent_pos = (cur_pos + 1) / 2 - 1;
-            ++path_len;
-        }
-        if (max_path_len < path_len) {
-            max_path_len = path_len;
-            best_start_pos = start_pos;
-        }
-    }
-    return best_start_pos;
-}
-
-void Color_path(vector<int>& shape, const int start_pos) {
+void Color_path(vector<int>& shape, const int start_pos) { // re-do to color unique vertex saving correct tree structure
     int cur_pos = start_pos;
     int cur_parent_pos = (start_pos + 1) / 2 - 1;
     while (cur_pos != 0 && shape[cur_parent_pos] == 0) {
@@ -176,32 +195,7 @@ void Color_path(vector<int>& shape, const int start_pos) {
     }
 }
 
-vector<int> Build_heuristic_transm_tree(vector<int> shape) {
-    int max_val = *std::max_element(shape.begin(), shape.end() - 1);
-    vector<vector<int>> val_to_pos(max_val + 1, vector<int>());
-    for (unsigned int i = 0; i < shape.size(); ++i) {
-        if (shape[i] > 0) {
-            val_to_pos[shape[i]].push_back(int(i));
-        }
-    }
 
-    std::sort(val_to_pos.begin(), val_to_pos.end(), Comp_by_arr_len);
-    for (unsigned int i = 0; i < val_to_pos.size(); ++i) {
-        if (!val_to_pos[i].empty()) {
-            vector<int> cur_poses = val_to_pos[i]; //
-            int best_start_pos = Get_longest_path_start_pos(shape, cur_poses);
-            Color_path(shape, best_start_pos);
-        }
-    }
-
-    std::reverse(val_to_pos.begin(), val_to_pos.end());
-    for (unsigned int i = 0; i < val_to_pos.size(); ++i) {
-        for (int cur_pos : val_to_pos[i]) {
-            Color_path(shape, cur_pos);
-        }
-    }
-    return shape;
-}
 
 vector<vector<int>> Build_transm_network(vector<int> transm_tree) {
     int max_val = *std::max_element(transm_tree.begin(), transm_tree.end() - 1);
@@ -245,22 +239,6 @@ int Calc_s_metric(vector<vector<int>> transm_network) {
     return s_metric;
 }
 
-TransmissionProp Get_max_s_net(vector<vector<int>> transm_trees) {
-    int max_val = *std::max_element(transm_trees[0].begin(), transm_trees[0].end() - 1);
-    vector<vector<int>> best_net;
-    vector<int> best_tree;
-    int max_s = 0;
-    for (const auto& tree : transm_trees) {
-        auto net = Build_transm_network(tree);
-        int s = Calc_s_metric(net);
-        if (s > max_s) {
-            best_net = net;
-            best_tree = tree;
-            max_s = s;
-        }
-    }
-    return TransmissionProp(best_tree, best_net, max_s);
-}
 
 void Save_trees(vector<vector<int>> shapes, string path) {
     ofstream fout(path);
@@ -307,23 +285,21 @@ void Save_transm_net(vector<vector<int>> transm_net, string path, int s = 0) {
 }
 
 int main() {
-    vector<int> simple_shape = Generate_random_tree(5, 4);
-    Save_trees(vector<vector<int>>{ simple_shape }, "shape.txt");
-    vector<int> shape = Read_trees("shape.txt")[0];
-    // vector<int>{ 0, 0, 0, 0, 0, 4, 0, 1, 0, 0, 1, -1, -1, 0, 0, -1, -1, 1, 2, 3, 2, -1, -1, -1, -1, -1, -1, 1, 2, 3, 4};
+    //vector<int> simple_shape = Generate_random_tree(5, 4);
+    //Save_trees(vector<vector<int>>{ simple_shape }, "shape.txt");
+    //vector<int> shape = Read_trees("shape.txt")[0];
+    vector<int> tree_sample{ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 0, -1, -1, 1, 1, 1, -1, -1, 1, 2, 2, 3, 3, -1, -1, 4, 4};
+    Save_trees(vector<vector<int>>{tree_sample}, "random_tree_sample.txt");
+    vector<int> pruned_tree = Prune_tree(tree_sample);
+    Save_trees(vector<vector<int>>{pruned_tree}, "pruned_tree_sample.txt");
+    vector<int> random_colored = Random_tree_color(pruned_tree);
+    Save_trees(vector<vector<int>>{random_colored}, "random_colored_tree.txt");
+    //vector<int> shape = Read_trees("AA_tree.txt")[0];
+    //Save_trees(vector<vector<int>>{shape}, "AA_pruned.txt");
 
-    vector<vector<int>> possible_trees = Generate_all_transm_trees(0, shape);
-    Save_trees(possible_trees, "possible_trees.txt");
-    vector<vector<int>> trees = Read_trees("possible_trees.txt");
-    TransmissionProp best_prop = Get_max_s_net(trees);
-    Save_trees(vector<vector<int>>{ best_prop.tree }, "best_tree.txt");
-    Save_transm_net(best_prop.net, "best_net.txt", best_prop.s);
-
-    vector<int> heuristic_transm_tree = Build_heuristic_transm_tree(shape);
-    Save_trees(vector<vector<int>>{heuristic_transm_tree}, "heuristic_tree.txt");
-    vector<vector<int>> heuristic_transm_net = Build_transm_network(heuristic_transm_tree);
-    int heuristic_s = Calc_s_metric(heuristic_transm_net);
-    Save_transm_net(heuristic_transm_net, "heuristic_net.txt", heuristic_s);
+    //vector<vector<int>> possible_trees = Generate_all_transm_trees(0, shape);
+    //Save_trees(possible_trees, "possible_trees.txt");
+    //vector<vector<int>> trees = Read_trees("possible_trees.txt");
 
     return 0;
 }
