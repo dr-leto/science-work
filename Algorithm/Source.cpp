@@ -3,6 +3,7 @@
 #include <fstream>
 #include <algorithm>
 #include <set>
+#include <unordered_set>
 #include <utility>
 #include <string>
 #include <map>
@@ -11,6 +12,7 @@
 
 using std::vector;
 using std::set;
+using std::unordered_set;
 using std::map;
 using std::pair;
 using std::make_pair;
@@ -122,15 +124,65 @@ vector<int> Random_tree_color(vector<int> shape) {
             }
             if (shape[left] > 0 && shape[right] == -1) {
                 shape[i] = shape[left];
-                shape[left] = -1;
             }
             if (shape[right] > 0 && shape[left] == -1) {
                 shape[i] = shape[right];
-                shape[right] = -1;
             }
         }
     }
     return shape;
+}
+
+unordered_set<int> Get_vertices_to_color(const vector<int>& tree) {
+    unordered_set <int> vertices_to_recolor;
+    for (int i = tree.size() - 1; i > -1; --i) {
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+        if (right < int(tree.size()) && tree[i] == 0 && tree[left] > 0 && tree[right] > 0) {
+            vertices_to_recolor.insert(i);
+        }
+    }
+    return vertices_to_recolor;
+}
+
+int Get_random_vertex(unordered_set<int>& vertices) {
+    int rand_key = rand() % 10;
+    if (vertices.find(rand_key) != vertices.end()) {
+        return rand_key;
+    }
+    vertices.insert(rand_key);
+    auto it = vertices.find(rand_key);
+    int rand_vertex = *(++it);
+    vertices.erase(rand_key);
+    return rand_vertex;
+}
+const vector<int>& MCMC_step(const vector<int>& old_tree, unordered_set<int>& vertices_to_recolor) {
+    vector<int> tree(old_tree);
+    int cur_v = Get_random_vertex(vertices_to_recolor);
+    tree[cur_v] = (tree[cur_v] == tree[cur_v * 2 + 1]) ? tree[cur_v * 2 + 2] : tree[cur_v * 2 + 1];
+    while (cur_v != 0) {
+        int cur_p = (cur_v - 1) / 2;
+        vertices_to_recolor.insert(cur_p);
+
+        int left = cur_p * 2 + 1;
+        int right = cur_p * 2 + 2;
+        if (tree[left] == tree[right]) {
+            vertices_to_recolor.erase(cur_p);
+        }
+        if (tree[cur_p] != tree[left] && tree[cur_p] != tree[right]) {
+            tree[cur_p] = (rand() % 2 == 0) ? tree[left] : tree[right];
+        }
+        cur_v = cur_p;
+    }
+    vector<vector<int>> old_trans = Build_transm_network(old_tree);
+    int old_s = Calc_s_metric(old_trans);
+    vector<vector<int>> trans = Build_transm_network(tree);
+    int cur_s = Calc_s_metric(trans);
+    if (rand() % (old_s + cur_s) > old_s) {
+        return old_tree;
+    } else {
+        return tree;
+    }
 }
 
 
@@ -185,19 +237,7 @@ vector<vector<int>> Generate_all_transm_trees(const int root_id, vector<int>& sh
     return possible_shapes;
 }
 
-void Color_path(vector<int>& shape, const int start_pos) { // re-do to color unique vertex saving correct tree structure
-    int cur_pos = start_pos;
-    int cur_parent_pos = (start_pos + 1) / 2 - 1;
-    while (cur_pos != 0 && shape[cur_parent_pos] == 0) {
-        shape[cur_parent_pos] = shape[cur_pos];
-        cur_pos = cur_parent_pos;
-        cur_parent_pos = (cur_pos + 1) / 2 - 1;
-    }
-}
-
-
-
-vector<vector<int>> Build_transm_network(vector<int> transm_tree) {
+vector<vector<int>> Build_transm_network(const vector<int>& transm_tree) {
     int max_val = *std::max_element(transm_tree.begin(), transm_tree.end() - 1);
     vector<vector<int>> transm_network(max_val + 1, vector<int>());
     set<pair<int, int>> pairs;
