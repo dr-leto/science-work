@@ -163,10 +163,11 @@ int Get_random_vertex(const set<int>& vertices) {
     return v_vec[rand() % vertices.size()];
 }
 
-vector<int> Color_random_vertex(const vector<int>& tree) {
+pair<vector<int>, int> Color_random_vertex(const vector<int>& tree) {
     vector<int> new_tree(tree);
     set<int> v_rec = Get_vertices_to_recolor(tree);
     int cur_v = Get_random_vertex(v_rec);
+    int first_recolored = cur_v;
     new_tree[cur_v] = (new_tree[cur_v] == new_tree[cur_v * 2 + 1]) ? new_tree[cur_v * 2 + 2] : new_tree[cur_v * 2 + 1];
     while (cur_v != 0) {
         int cur_p = (cur_v - 1) / 2;
@@ -184,7 +185,7 @@ vector<int> Color_random_vertex(const vector<int>& tree) {
         }
         cur_v = cur_p;
     }
-    return new_tree;
+    return std::make_pair(new_tree, first_recolored);
 }
 
 vector<int> Merge_shapes(const vector<int>& left_shape, const vector<int>& right_shape) {
@@ -281,22 +282,22 @@ int Calc_s_metric(vector<vector<int>> transm_network) {
     return s_metric;
 }
 
-pair<vector<int>, vector<int>> MCMC_run(const vector<int>& tree, int n) {
+vector<int> MCMC_run(const vector<int>& tree, int n, vector<int>& s_metrics, vector<int>& recolored_vertices) {
     vector<int> old_tree(tree);
-    vector<int> s_metrics;
     srand(time(NULL));
     for (int i = 0; i < n; ++i) {
-        vector<int> new_tree = Color_random_vertex(old_tree);
+        pair<vector<int>, int> new_tree_v = Color_random_vertex(old_tree);
+        recolored_vertices.push_back(new_tree_v.second);
         vector<vector<int>> old_trans = Build_transm_network(old_tree);
         int old_s = Calc_s_metric(old_trans);
         s_metrics.push_back(old_s);
-        vector<vector<int>> new_trans = Build_transm_network(new_tree);
+        vector<vector<int>> new_trans = Build_transm_network(new_tree_v.first);
         int new_s = Calc_s_metric(new_trans);
         if (rand() % (old_s + new_s) > old_s) {
-            old_tree = new_tree;
+            old_tree = new_tree_v.first;
         }
     }
-    return std::make_pair(old_tree, s_metrics);
+    return old_tree;
 }
 
 
