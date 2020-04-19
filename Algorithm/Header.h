@@ -12,6 +12,7 @@
 #include <sstream>
 #include <time.h>
 
+
 using std::vector;
 using std::set;
 using std::unordered_set;
@@ -25,18 +26,18 @@ using std::getline;
 using std::istringstream;
 using std::endl;
 
-void leaves_random_color(vector<int>& shape, int k_num) {
+typedef vector<vector<int>> matrix;
+typedef vector<int> vec;
+typedef map<int, vector<pair<int, int>>> adj_list;
+
+void leaves_random_color(adj_list shape, int k_num) {
     srand(time(NULL));
-    for (unsigned int i = 0; i < shape.size(); ++i) {
-        if (shape[i] == 0) {
-            if (2 * i + 1 < shape.size()) {
-                if (shape[2 * i + 1] == -1 && shape[2 * i + 2] == -1) {
-                    shape[i] = rand() % k_num + 1;
-                }
-            }
-            else {
-                shape[i] = rand() % k_num + 1;
-            }
+    auto it = shape.begin();
+    while (it != shape.end()) {
+        int ind = it->first;
+        auto arr = it->second; // hope that this is a pointer
+        if (ind != 0 && arr.size() == 1) { // if vertex is not a root and it has only parent as neighboor => it is a leaf
+            arr[0].second = rand() % k_num + 1;
         }
     }
 }
