@@ -148,16 +148,6 @@ set<int> Get_vertices_to_recolor(const vector<int>& tree) {
 }
 
 int Get_random_vertex(const set<int>& vertices) {
-    //int rand_key = rand() % 1000;
-    //if (vertices.find(rand_key) != vertices.end()) {
-    //    return rand_key;
-    //}
-    //vertices.insert(rand_key);
-    //auto it = vertices.find(rand_key);
-    //int rand_vertex = *(++it);
-    //vertices.erase(rand_key);
-    //return rand_vertex;
-
     vector<int> v_vec(vertices.size(), 0);
     std::copy(vertices.begin(), vertices.end(), v_vec.begin());
     return v_vec[rand() % vertices.size()];
@@ -171,13 +161,9 @@ pair<vector<int>, int> Color_random_vertex(const vector<int>& tree) {
     new_tree[cur_v] = (new_tree[cur_v] == new_tree[cur_v * 2 + 1]) ? new_tree[cur_v * 2 + 2] : new_tree[cur_v * 2 + 1];
     while (cur_v != 0) {
         int cur_p = (cur_v - 1) / 2;
-        // vertices_to_recolor.insert(cur_p);
 
         int left = cur_p * 2 + 1;
         int right = cur_p * 2 + 2;
-        //if (new_tree[left] == new_tree[right]) {
-        //    vertices_to_recolor.erase(cur_p);
-        //}
         if (new_tree[cur_p] != new_tree[left] && new_tree[cur_p] != new_tree[right]) {
             new_tree[cur_p] = (rand() % 2 == 0) ? new_tree[left] : new_tree[right];
         } else {

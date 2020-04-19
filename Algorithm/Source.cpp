@@ -36,14 +36,16 @@ void Test() {
 void Run_hepatit() {
     vector<int> s_metrics;
     vector<int> recolored_vertices;
-    vector<int> outbreak = Read_tree("AA_tree.txt");
-    vector<int> result = MCMC_run(outbreak, 10000, s_metrics, recolored_vertices);
+    string outbreak_name = "AA/";
+    vector<int> outbreak = Read_tree("in/hepatit/" + outbreak_name + "tree.txt");
+    vector<int> result = MCMC_run(outbreak, 100, s_metrics, recolored_vertices);
     vector<vector<int>> transm_net = Build_transm_network(result);
     int s_metric = Calc_s_metric(transm_net);
-    Save_tree(result, "out/hepatit/mcmc_tree.txt");
-    Save_transm_net(transm_net, "out/hepatit/transm_net.txt", s_metric);
-    Save_tree(s_metrics, "out/hepatit/mcmc_s_metrics.txt");
-    Save_tree(recolored_vertices, "out/hepatit/mcmc_recolored_vertices.txt");
+    string prefix = "out/hepatit/" + outbreak_name;
+    Save_tree(result, prefix + "mcmc_tree.txt");
+    Save_transm_net(transm_net, prefix + "transm_net.txt", s_metric);
+    Save_tree(s_metrics, prefix + "mcmc_s_metrics.txt");
+    Save_tree(recolored_vertices, prefix + "mcmc_recolored_vertices.txt");
 
 }
 
