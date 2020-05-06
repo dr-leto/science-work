@@ -26,35 +26,31 @@ using std::istringstream;
 using std::endl;
 using std::advance;
 
-typedef vector<vector<int>> matrix;
-typedef vector<int> vec;
-typedef vector<pair<int, vec>> vec_pair;
 
-void Arr_to_adj_list(const vec& tree, int cur_v, int parent, vec_pair& adj_list, vec& ind_to_color) { // created function with binary tree preorder_traversal
+typedef vector<int> vec;
+typedef vector<vec> vec_vec;
+
+void Arr_to_adj_list(const vec& tree, int cur_v, int parent, vec_vec& adj_list, vec& ind_to_color) { // created function with binary tree preorder_traversal
     int left = 2 * cur_v + 1;
     int right = 2 * cur_v + 2;
     if (cur_v > tree.size() || tree[cur_v] < 0) {
         return;
     }
     if (cur_v != 0) {
-        adj_list.push_back(make_pair(cur_v, vec({ parent })));
+        adj_list.push_back(vec({ parent }));
     }
-    adj_list[parent].second.push_back(cur_v);
+    adj_list[parent].push_back(cur_v);
     ind_to_color.push_back(tree[cur_v]);
     Arr_to_adj_list(tree, left, cur_v, adj_list, ind_to_color);
     Arr_to_adj_list(tree, right, cur_v, adj_list, ind_to_color);
 }
 
-void leaves_random_color(adj_list shape, int k_num) {
+void Leaves_random_color(const vec_vec& shape, vec& int_to_color, int k_num) {
     srand(time(NULL));
-    auto it = shape.begin();
-    while (it != shape.end()) {
-        int ind = it->first;
-        auto arr = it->second; // hope that this is a pointer
-        if (ind != 0 && arr.size() == 1) { // if vertex is not a root and it has only parent as neighboor => it is a leaf
-            arr[0].second = rand() % k_num + 1;
+    for (unsigned int i = 1; i < shape.size(); ++i) {
+        if (shape[i].size() == 1) { // if vertex is not a root and has only parent as neighboor => it is a leaf
+            int_to_color[i] = rand() % k_num + 1;
         }
-        ++it;
     }
 }
 
