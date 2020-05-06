@@ -14,21 +14,36 @@
 
 
 using std::vector;
-using std::set;
-using std::unordered_set;
-using std::map;
 using std::pair;
 using std::make_pair;
+using std::set;
+using std::map;
 using std::string;
 using std::ifstream;
 using std::ofstream;
 using std::getline;
 using std::istringstream;
 using std::endl;
+using std::advance;
 
 typedef vector<vector<int>> matrix;
 typedef vector<int> vec;
-typedef map<int, vector<pair<int, int>>> adj_list;
+typedef vector<pair<int, vec>> vec_pair;
+
+void Arr_to_adj_list(const vec& tree, int cur_v, int parent, vec_pair& adj_list, vec& ind_to_color) { // created function with binary tree preorder_traversal
+    int left = 2 * cur_v + 1;
+    int right = 2 * cur_v + 2;
+    if (cur_v > tree.size() || tree[cur_v] < 0) {
+        return;
+    }
+    if (cur_v != 0) {
+        adj_list.push_back(make_pair(cur_v, vec({ parent })));
+    }
+    adj_list[parent].second.push_back(cur_v);
+    ind_to_color.push_back(tree[cur_v]);
+    Arr_to_adj_list(tree, left, cur_v, adj_list, ind_to_color);
+    Arr_to_adj_list(tree, right, cur_v, adj_list, ind_to_color);
+}
 
 void leaves_random_color(adj_list shape, int k_num) {
     srand(time(NULL));
@@ -39,6 +54,7 @@ void leaves_random_color(adj_list shape, int k_num) {
         if (ind != 0 && arr.size() == 1) { // if vertex is not a root and it has only parent as neighboor => it is a leaf
             arr[0].second = rand() % k_num + 1;
         }
+        ++it;
     }
 }
 
@@ -78,6 +94,7 @@ vector<int> Generate_random_shape(int max_height, int k_num) {
             nodes.insert(2 * index + lr);
         }
     }
+    // apply arr_to_adj_list here
     leaves_random_color(tree_shape, k_num);
     return tree_shape;
 }
