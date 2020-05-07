@@ -1,36 +1,15 @@
 #include "Header.h"
 
-void Test() {
-    //vector<int> tree_sample{ 2, 3, 2, 3, 3, -1, -1, 2, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-    int max_height = 6;
-    int num_k = 10;
-    vector<int> raw_shape = Generate_random_shape(max_height, num_k);
-    Save_tree(raw_shape, "test/raw_shape.txt");
-    vector<int> pruned_shape = Prune_shape(raw_shape);
-    Save_tree(pruned_shape, "test/pruned_shape.txt");
-    vector<int> colored_tree = Shape_random_color(pruned_shape);
-    Save_tree(colored_tree, "test/colored_tree.txt");
-    vector<vector<int>> transm_net = Build_transm_network(colored_tree);
-    int s_metric = Calc_s_metric(transm_net);
-    Save_transm_net(transm_net, "test/transm_net.txt", s_metric);
-
-    set<int> v_to_recol = Get_vertices_to_recolor(colored_tree);
-    vector<int> vec_v_to_recol(v_to_recol.size(), 0);
-    std::copy(v_to_recol.begin(), v_to_recol.end(), vec_v_to_recol.begin());
-    pair<vector<int>, int> recolored_tree = Color_random_vertex(colored_tree);
-    vec_v_to_recol.push_back(recolored_tree.second);
-    Save_tree(vec_v_to_recol, "test/vertices_to_recolor.txt");
-    Save_tree(recolored_tree.first, "test/recolored_tree.txt");
-    vector<vector<int>> rec_transm_net = Build_transm_network(recolored_tree.first);
-    int rec_s_metric = Calc_s_metric(rec_transm_net);
-    Save_transm_net(rec_transm_net, "test/rec_transm_net.txt", rec_s_metric);
-
-    vector<int> s_metrics;
-    vector<int> recolored_vertices;
-    vector<int> result = MCMC_run(colored_tree, 1000, s_metrics, recolored_vertices);
-    Save_tree(result, "out/test/mcmc_tree.txt");
-    Save_tree(s_metrics, "out/test/mcmc_s_metrics.txt");
-    Save_tree(recolored_vertices, "test/mcmc_recolored_vertices.txt");
+void Run_test() {
+    vector<int> shape_sample{ 0, 0, 0, 0, 0, -1, -1, 0, -1, 0, 0, -1, -1, -1, -1 };
+    int max_height = 3;
+    int col_num = 3;
+    srand(time(NULL));
+    Bin_tree new_shape;
+    Arr_to_adj_list(shape_sample, 0, 0, new_shape);
+    Leaves_random_color(new_shape, col_num);
+    Shape_random_color(new_shape, 0);
+    int a = 5;
 }
 
 void Run_hepatit() {
@@ -50,7 +29,7 @@ void Run_hepatit() {
 }
 
 int main() {
-    Run_hepatit();
+    Run_test();
 
     return 0;
 }
