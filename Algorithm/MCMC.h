@@ -19,26 +19,34 @@ int Get_random_vertex(const set<int>& vertices) {
     return v_vec[rand() % vertices.size()];
 }
 
-pair<vector<int>, int> Color_random_vertex(const vector<int>& tree) {
-    vector<int> new_tree(tree);
+int Color_random_vertex(Graph& tree) {
     set<int> v_rec = Get_vertices_to_recolor(tree);
     int cur_v = Get_random_vertex(v_rec);
-    int first_recolored = cur_v;
-    new_tree[cur_v] = (new_tree[cur_v] == new_tree[cur_v * 2 + 1]) ? new_tree[cur_v * 2 + 2] : new_tree[cur_v * 2 + 1];
-    while (cur_v != 0) {
-        int cur_p = (cur_v - 1) / 2;
+    int first_v = cur_v;
 
-        int left = cur_p * 2 + 1;
-        int right = cur_p * 2 + 2;
-        if (new_tree[cur_p] != new_tree[left] && new_tree[cur_p] != new_tree[right]) {
-            new_tree[cur_p] = (rand() % 2 == 0) ? new_tree[left] : new_tree[right];
+    int left_col = tree.ind_to_color[tree.adj_list[cur_v][1]];
+    int right_col = tree.ind_to_color[tree.adj_list[cur_v][2]];
+    int cur_col = tree.ind_to_color[cur_v];
+    tree.ind_to_color[cur_v] = (cur_col != left_col) ? left_col : right_col;
+    while(cur_v != 0) {
+        int parent_v = tree.adj_list[cur_v][0];
+        int parent_col = tree.ind_to_color[parent_v];
+
+        if (tree.adj_list[parent_v].size() == 2) {
+            tree.ind_to_color[parent_v] = cur_col;
+        } else {
+            int neighboor_v = (tree.adj_list[parent_v][1] != cur_v) ? tree.adj_list[parent_v][1] : tree.adj_list[parent_v][2];
+            int neighboor_col = tree.ind_to_color[neighboor_v];
+            if (parent_col != cur_col && parent_col != neighboor_col) {
+                tree.ind_to_color[parent_v] = (rand() % 2 == 0) ? cur_col : neighboor_col;
+            } else {
+                break;
+            }
         }
-        else {
-            break;
-        }
-        cur_v = cur_p;
+        cur_v = parent_v;
+        cur_col = parent_col;
     }
-    return std::make_pair(new_tree, first_recolored);
+    return first_v;
 }
 
 vector<vector<int>> Build_transm_network(const vector<int>& transm_tree) {
