@@ -40,35 +40,35 @@ struct Bin_tree {
     }
 };
 
-void Arr_to_adj_list(const vec& tree, int cur_v, int parent, Bin_tree& new_tree) {
+void Arr_to_adj_list(const vec& tree, int cur_v, int prev_it, Bin_tree& new_tree) {
     int left = 2 * cur_v + 1;
     int right = 2 * cur_v + 2;
-    if (cur_v > tree.size() || tree[cur_v] < 0) {
+    int cur_it = new_tree.adj_list.size();
+
+    if (cur_v > tree.size() - 1 || tree[cur_v] < 0) {
         return;
     }
+    new_tree.adj_list.push_back(vec({ prev_it }));
     if (cur_v != 0) {
-        new_tree.adj_list.push_back(vec({ parent }));
+        new_tree.adj_list[prev_it].push_back(cur_it);
     }
-    new_tree.adj_list[parent].push_back(cur_v);
     new_tree.ind_to_color.push_back(tree[cur_v]);
-    Arr_to_adj_list(tree, left, cur_v, new_tree);
-    Arr_to_adj_list(tree, right, cur_v, new_tree);
+    Arr_to_adj_list(tree, left, cur_it, new_tree);
+    Arr_to_adj_list(tree, right, cur_it, new_tree);
 }
 
-void Leaves_random_color(Bin_tree& shape, int k_num) {
-    srand(time(NULL));
+void Leaves_random_color(Bin_tree& shape, int col_num) {
     for (unsigned int i = 1; i < shape.adj_list.size(); ++i) {
         if (shape.adj_list[i].size() == 1) { // if vertex is not a root and has only parent as neighboor => it is a leaf
-            shape.ind_to_color[i] = rand() % k_num + 1;
+            shape.ind_to_color[i] = rand() % col_num + 1;
         }
     }
 }
 
-Bin_tree Generate_random_shape(int max_height, int k_num) {
+Bin_tree Generate_random_shape(int max_height, int col_num) {
     int shape_size = pow(2, max_height + 1) - 1;
     vector<int> tree_shape(shape_size, -1);
     tree_shape[0] = 0;
-    srand(time(NULL));
     // int num_it = rand() % shape_size + 2;
     int num_it = pow(2, max_height);
     set<int> nodes;
@@ -102,20 +102,24 @@ Bin_tree Generate_random_shape(int max_height, int k_num) {
     }
     Bin_tree new_shape;
     Arr_to_adj_list(tree_shape, 0, 0, new_shape);
-    Leaves_random_color(new_shape, k_num);
+    Leaves_random_color(new_shape, col_num);
     return new_shape;
 }
 
 int Shape_random_color(Bin_tree& shape, int cur_v) {
     switch (shape.adj_list[cur_v].size()) {
-    case 2:
+    case 2: 
+    {
         int col = Shape_random_color(shape, shape.adj_list[cur_v][1]);
         shape.ind_to_color[cur_v] = col;
+    }
         break;
     case 3:
+    {
         int l_col = Shape_random_color(shape, shape.adj_list[cur_v][1]);
         int r_col = Shape_random_color(shape, shape.adj_list[cur_v][2]);
         shape.ind_to_color[cur_v] = (rand() % 2 == 0) ? l_col : r_col;
+    }
         break;
     }
     return shape.ind_to_color[cur_v];
