@@ -164,58 +164,6 @@ pair<vector<int>, int> Color_random_vertex(const vector<int>& tree) {
     return std::make_pair(new_tree, first_recolored);
 }
 
-vector<int> Merge_shapes(const vector<int>& left_shape, const vector<int>& right_shape) {
-    vector<int> new_shape;
-    for (unsigned int i = 0; i < left_shape.size(); ++i) {
-        new_shape.push_back((left_shape[i] != 0) ? left_shape[i] : right_shape[i]);
-    }
-    return new_shape;
-}
-
-vector<vector<int>> Generate_all_transm_trees(const int root_id, vector<int>& shape) {
-    vector<vector<int>> left_shapes, right_shapes, possible_shapes;
-
-    unsigned int left_child_id = 2 * root_id + 1;
-    unsigned int right_child_id = 2 * root_id + 2;
-
-    if ((shape.size() <= left_child_id) || (shape[left_child_id] < 0 && shape[right_child_id] < 0)) {
-        return vector<vector<int>>{ shape };
-    }
-    if (shape[left_child_id] < 0) { //when left child is empty
-        possible_shapes = Generate_all_transm_trees(right_child_id, shape);
-        for (unsigned int i = 0; i < possible_shapes.size(); ++i) {
-            possible_shapes[i][root_id] = possible_shapes[i][right_child_id];
-        }
-        return possible_shapes;
-    }
-    if (shape[right_child_id] < 0) { //when right child is empty
-        possible_shapes = Generate_all_transm_trees(left_child_id, shape);
-        for (unsigned int i = 0; i < possible_shapes.size(); ++i) {
-            possible_shapes[i][root_id] = possible_shapes[i][left_child_id];
-        }
-        return possible_shapes;
-    }
-    left_shapes = Generate_all_transm_trees(left_child_id, shape);
-    right_shapes = Generate_all_transm_trees(right_child_id, shape);
-
-    for (unsigned int i = 0; i < left_shapes.size(); ++i) {
-        for (unsigned int j = 0; j < right_shapes.size(); ++j) {
-            if (left_shapes[i][left_child_id] == right_shapes[j][right_child_id]) {
-                left_shapes[i][root_id] = left_shapes[i][left_child_id];
-                possible_shapes.push_back(Merge_shapes(left_shapes[i], right_shapes[j]));
-            }
-            else {
-                left_shapes[i][root_id] = left_shapes[i][left_child_id];
-                possible_shapes.push_back(Merge_shapes(left_shapes[i], right_shapes[j]));
-                left_shapes[i][root_id] = right_shapes[j][right_child_id];
-                possible_shapes.push_back(Merge_shapes(left_shapes[i], right_shapes[j]));
-            }
-        }
-    }
-
-    return possible_shapes;
-}
-
 vector<vector<int>> Build_transm_network(const vector<int>& transm_tree) {
     int max_val = *std::max_element(transm_tree.begin(), transm_tree.end() - 1);
     vector<vector<int>> transm_network(max_val + 1, vector<int>());
