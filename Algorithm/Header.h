@@ -107,40 +107,6 @@ Bin_tree Generate_random_shape(int max_height, int k_num) {
     return new_shape;
 }
 
-vector<int> Prune_shape(vector<int> shape) {
-    for (int i = shape.size() - 1; i > -1; --i) {
-        int left = 2 * i + 1;
-        int right = 2 * i + 2;
-        if (shape[i] == 0) {
-            if (shape[right] == shape[left] && shape[left] > 0) {
-                shape[i] = shape[left];
-                shape[left] = -1;
-                shape[right] = -1;
-            }
-            if (shape[left] > 0 && shape[right] == -1) {
-                shape[i] = shape[left];
-                shape[left] = -1;
-            }
-            if (shape[right] > 0 && shape[left] == -1) {
-                shape[i] = shape[right];
-                shape[right] = -1;
-            }
-        }
-    }
-    int new_height = 0;
-    for (int i = shape.size() - 1; i > -1; --i) {
-        if (shape[i] > 0) {
-            new_height = std::log(i + 1) / std::log(2);
-            break;
-        }
-    }
-    vector<int> pruned_tree;
-    for (int i = 0; i < pow(2, new_height + 1) - 1; ++i) {
-        pruned_tree.push_back(shape[i]);
-    }
-    return pruned_tree;
-}
-
 vector<int> Shape_random_color(vector<int> shape) {
     srand(time(NULL));
     for (int i = shape.size() - 1; i > -1; --i) {
