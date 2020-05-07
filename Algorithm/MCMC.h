@@ -1,12 +1,12 @@
 #pragma once
 #include "Header.h"
 
-set<int> Get_vertices_to_recolor(const vector<int>& tree) {
+set<int> Get_vertices_to_recolor(const Graph& tree) {
     set <int> vertices_to_recolor;
-    for (int i = tree.size() - 1; i > -1; --i) {
-        unsigned int left = 2 * i + 1;
-        unsigned int right = 2 * i + 2;
-        if (right < tree.size() && tree[left] > 0 && tree[right] > 0 && tree[left] != tree[right]) {
+
+    for (unsigned int i = 0; i < tree.adj_list.size(); ++i) {
+        if (tree.adj_list[i].size() == 3
+            && tree.ind_to_color[tree.adj_list[i][1]] != tree.ind_to_color[tree.adj_list[i][2]]) {
             vertices_to_recolor.insert(i);
         }
     }
