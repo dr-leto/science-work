@@ -29,32 +29,42 @@ using std::advance;
 
 typedef vector<int> vec;
 typedef vector<vec> vec_vec;
+struct Bin_tree {
+    vec_vec adj_list;
+    vec ind_to_color;
 
-void Arr_to_adj_list(const vec& tree, int cur_v, int parent, vec_vec& adj_list, vec& ind_to_color) { // created function with binary tree preorder_traversal
+    Bin_tree() = default;
+    Bin_tree(vec_vec list, vec itc) {
+        adj_list = list;
+        ind_to_color = itc;
+    }
+};
+
+void Arr_to_adj_list(const vec& tree, int cur_v, int parent, Bin_tree& new_tree) {
     int left = 2 * cur_v + 1;
     int right = 2 * cur_v + 2;
     if (cur_v > tree.size() || tree[cur_v] < 0) {
         return;
     }
     if (cur_v != 0) {
-        adj_list.push_back(vec({ parent }));
+        new_tree.adj_list.push_back(vec({ parent }));
     }
-    adj_list[parent].push_back(cur_v);
-    ind_to_color.push_back(tree[cur_v]);
-    Arr_to_adj_list(tree, left, cur_v, adj_list, ind_to_color);
-    Arr_to_adj_list(tree, right, cur_v, adj_list, ind_to_color);
+    new_tree.adj_list[parent].push_back(cur_v);
+    new_tree.ind_to_color.push_back(tree[cur_v]);
+    Arr_to_adj_list(tree, left, cur_v, new_tree);
+    Arr_to_adj_list(tree, right, cur_v, new_tree);
 }
 
-void Leaves_random_color(const vec_vec& shape, vec& int_to_color, int k_num) {
+void Leaves_random_color(Bin_tree& shape, int k_num) {
     srand(time(NULL));
-    for (unsigned int i = 1; i < shape.size(); ++i) {
-        if (shape[i].size() == 1) { // if vertex is not a root and has only parent as neighboor => it is a leaf
-            int_to_color[i] = rand() % k_num + 1;
+    for (unsigned int i = 1; i < shape.adj_list.size(); ++i) {
+        if (shape.adj_list[i].size() == 1) { // if vertex is not a root and has only parent as neighboor => it is a leaf
+            shape.ind_to_color[i] = rand() % k_num + 1;
         }
     }
 }
 
-vector<int> Generate_random_shape(int max_height, int k_num) {
+Bin_tree Generate_random_shape(int max_height, int k_num) {
     int shape_size = pow(2, max_height + 1) - 1;
     vector<int> tree_shape(shape_size, -1);
     tree_shape[0] = 0;
@@ -91,8 +101,10 @@ vector<int> Generate_random_shape(int max_height, int k_num) {
         }
     }
     // apply arr_to_adj_list here
-    leaves_random_color(tree_shape, k_num);
-    return tree_shape;
+    Bin_tree new_shape;
+    Arr_to_adj_list(tree_shape, 0, 0, new_shape);
+    Leaves_random_color(new_shape, k_num);
+    return new_shape;
 }
 
 vector<int> Prune_shape(vector<int> shape) {
