@@ -1,11 +1,14 @@
-#include "Header.h"
+#include "Tree_generation.h"
+#include "Saver.h"
+#include "MCMC.h"
+
 
 void Run_test() {
     vector<int> shape_sample{ 0, 0, 0, 0, 0, -1, -1, 0, -1, 0, 0, -1, -1, -1, -1 };
     int max_height = 3;
     int col_num = 3;
     srand(time(NULL));
-    Bin_tree new_shape;
+    Graph new_shape;
     Arr_to_adj_list(shape_sample, 0, 0, new_shape);
     Leaves_random_color(new_shape, col_num);
     Shape_random_color(new_shape, 0);
