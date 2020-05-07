@@ -100,31 +100,25 @@ Bin_tree Generate_random_shape(int max_height, int k_num) {
             nodes.insert(2 * index + lr);
         }
     }
-    // apply arr_to_adj_list here
     Bin_tree new_shape;
     Arr_to_adj_list(tree_shape, 0, 0, new_shape);
     Leaves_random_color(new_shape, k_num);
     return new_shape;
 }
 
-vector<int> Shape_random_color(vector<int> shape) {
-    srand(time(NULL));
-    for (int i = shape.size() - 1; i > -1; --i) {
-        int left = 2 * i + 1;
-        int right = 2 * i + 2;
-        if (shape[i] == 0) {
-            if (shape[right] > 0 && shape[left] > 0) {
-                shape[i] = (rand() % 2 == 0) ? shape[left] : shape[right];
-            }
-            if (shape[left] > 0 && shape[right] == -1) {
-                shape[i] = shape[left];
-            }
-            if (shape[right] > 0 && shape[left] == -1) {
-                shape[i] = shape[right];
-            }
-        }
+int Shape_random_color(Bin_tree& shape, int cur_v) {
+    switch (shape.adj_list[cur_v].size()) {
+    case 2:
+        int col = Shape_random_color(shape, shape.adj_list[cur_v][1]);
+        shape.ind_to_color[cur_v] = col;
+        break;
+    case 3:
+        int l_col = Shape_random_color(shape, shape.adj_list[cur_v][1]);
+        int r_col = Shape_random_color(shape, shape.adj_list[cur_v][2]);
+        shape.ind_to_color[cur_v] = (rand() % 2 == 0) ? l_col : r_col;
+        break;
     }
-    return shape;
+    return shape.ind_to_color[cur_v];
 }
 
 set<int> Get_vertices_to_recolor(const vector<int>& tree) {
