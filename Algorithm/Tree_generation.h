@@ -31,6 +31,23 @@ vec_vec Graph_to_matrix(const Graph& list) {
     return matrix;
 }
 
+Graph Matrix_to_graph(const vec_vec& matrix) {
+    int n = matrix.size();
+    vec_vec adj_list(n, vec());
+    vec ind_to_color(n, 0);
+    for (unsigned int i = 0; i < n; ++i) {
+        for (unsigned int j = 0; j < n; ++j) {
+            if (matrix[i][j] != 0) {
+                adj_list[i].push_back(j);
+                if (ind_to_color[i] == 0) {
+                    ind_to_color[i] = matrix[i][j];
+                }
+            }
+        }
+    }
+    return Graph(adj_list, ind_to_color);
+}
+
 void Leaves_random_color(Graph& shape, int col_num) {
     for (unsigned int i = 1; i < shape.adj_list.size(); ++i) {
         if (shape.adj_list[i].size() == 1) { // if vertex is not a root and has only parent as neighboor => it is a leaf
