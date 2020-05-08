@@ -2,7 +2,7 @@
 
 #include "Header.h"
 
-void Arr_to_adj_list(const vec& tree, int cur_v, int prev_it, Graph& new_tree) {
+void Arr_to_graph(const vec& tree, int cur_v, int prev_it, Graph& new_tree) {
     int left = 2 * cur_v + 1;
     int right = 2 * cur_v + 2;
     int cur_it = new_tree.adj_list.size();
@@ -15,8 +15,20 @@ void Arr_to_adj_list(const vec& tree, int cur_v, int prev_it, Graph& new_tree) {
         new_tree.adj_list[prev_it].push_back(cur_it);
     }
     new_tree.ind_to_color.push_back(tree[cur_v]);
-    Arr_to_adj_list(tree, left, cur_it, new_tree);
-    Arr_to_adj_list(tree, right, cur_it, new_tree);
+    Arr_to_graph(tree, left, cur_it, new_tree);
+    Arr_to_graph(tree, right, cur_it, new_tree);
+}
+
+vec_vec Graph_to_matrix(const Graph& list) {
+    int n = list.adj_list.size();
+    vec_vec matrix(n, vec(n, 0));
+    for (int i = 0; i < n; ++i) {
+        for (int cur_v : list.adj_list[i]) {
+            matrix[i][cur_v] = list.ind_to_color[cur_v];
+        }
+    }
+    matrix[0][0] = 0; // it's often that root tree has loop edge, just to remove it.
+    return matrix;
 }
 
 void Leaves_random_color(Graph& shape, int col_num) {
@@ -63,7 +75,7 @@ Graph Generate_random_shape(int max_height, int col_num) {
         }
     }
     Graph new_shape;
-    Arr_to_adj_list(tree_shape, 0, 0, new_shape);
+    Arr_to_graph(tree_shape, 0, 0, new_shape);
     Leaves_random_color(new_shape, col_num);
     return new_shape;
 }
