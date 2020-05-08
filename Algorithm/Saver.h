@@ -1,55 +1,38 @@
 #pragma once
 #include "Header.h"
+#include "Tree_generation.h"
 
-void Save_trees(vector<vector<int>> shapes, string path) {
+void Save_graph(Graph graph, string path) {
     ofstream fout(path);
-    for (unsigned int i = 0; i < shapes.size(); ++i) {
-        for (int el : shapes[i]) {
+    vec_vec matrix = Graph_to_matrix(graph);
+    for (const vec& row : matrix) {
+        for (int el : row) {
             fout << el << " ";
         }
         fout << endl;
     }
     fout.close();
 }
-void Save_tree(vector<int> shape, string path) {
-    ofstream fout(path);
-    for (int el : shape) {
-        fout << el << " ";
-    }
-    fout.close();
-}
 
-vector<vector<int>> Read_trees(string path) {
+Graph Read_graph(string path) {
     ifstream fin(path);
     string row;
-    vector<vector<int>> shapes;
+    int i = 0;
+    vec_vec matrix;
     while (getline(fin, row)) {
-        int num;
+        matrix.push_back(vec());
         istringstream n_stream(row);
-        vector<int> shape;
+        int num;
         while (n_stream >> num) {
-            shape.push_back(num);
+            matrix[i].push_back(num);
         }
-        shapes.push_back(shape);
+        ++i;
     }
     fin.close();
-    return shapes;
-}
-vector<int> Read_tree(string path) {
-    ifstream fin(path);
-    string row;
-    getline(fin, row);
-    istringstream n_stream(row);
-    int num;
-    vector<int> shape;
-    while (n_stream >> num) {
-        shape.push_back(num);
-    }
-    fin.close();
-    return shape;
+    return Matrix_to_graph(matrix);
 }
 
-void Save_transm_net(vector<vector<int>> transm_net, string path, int s = 0) {
+void Save_transm_net(vec_vec transm_net, string path, int s = 0) {
     ofstream fout(path);
     if (s != 0) {
         fout << s << endl;
