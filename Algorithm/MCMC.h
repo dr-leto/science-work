@@ -1,7 +1,7 @@
 #pragma once
 #include "Header.h"
 
-set<int> Get_vertices_to_recolor(const Graph& tree) {
+set<int> Get_v_to_recol(const Graph& tree) {
     set <int> vertices_to_recolor;
 
     for (unsigned int i = 0; i < tree.adj_list.size(); ++i) {
@@ -13,15 +13,15 @@ set<int> Get_vertices_to_recolor(const Graph& tree) {
     return vertices_to_recolor;
 }
 
-int Get_random_vertex(const set<int>& vertices) {
+int Get_rand_v(const set<int>& vertices) {
     vector<int> v_vec(vertices.size(), 0);
     std::copy(vertices.begin(), vertices.end(), v_vec.begin());
     return v_vec[rand() % vertices.size()];
 }
 
-int Recolor_random_vertex(Graph& tree) {
-    set<int> v_rec = Get_vertices_to_recolor(tree);
-    int cur_v = Get_random_vertex(v_rec);
+int Recol_rand_v(Graph& tree) {
+    set<int> v_rec = Get_v_to_recol(tree);
+    int cur_v = Get_rand_v(v_rec);
     int first_v = cur_v;
 
     int left_col = tree.ind_to_color[tree.adj_list[cur_v][1]];
@@ -49,7 +49,7 @@ int Recolor_random_vertex(Graph& tree) {
     return first_v;
 }
 
-vector<vector<int>> Build_transm_network(const Graph& tree) {
+vec_vec Build_t_net(const Graph& tree) {
     int max_val = *std::max_element(tree.ind_to_color.begin(), tree.ind_to_color.end() - 1);
     vec_vec t_net(max_val + 1, vector<int>()); // we assume that each of n colors match only one number from [1, n]
     set<pair<int, int>> pairs;
@@ -70,9 +70,9 @@ vector<vector<int>> Build_transm_network(const Graph& tree) {
     return t_net;
 }
 
-int Calc_s_metric(vector<vector<int>> transm_network) {
-    vector<int> deg_arr;
-    for (auto net : transm_network) {
+int Calc_s_metric(vec_vec transm_network) {
+    vec deg_arr;
+    for (const vec& net : transm_network) {
         if (!net.empty()) {
             deg_arr.push_back(net.size());
         }
@@ -86,20 +86,22 @@ int Calc_s_metric(vector<vector<int>> transm_network) {
     return s_metric;
 }
 
-vector<int> MCMC_run(const vector<int>& tree, int n, vector<int>& s_metrics, vector<int>& recolored_vertices) {
-    vector<int> old_tree(tree);
+void MCMC_run(const Graph& tree, int n, vec& s_metrics, vec& recolored_vertices) {
+    Graph old_tree(tree);
     srand(time(NULL));
     for (int i = 0; i < n; ++i) {
-        pair<vector<int>, int> new_tree_v = Recolor_random_vertex(old_tree);
-        recolored_vertices.push_back(new_tree_v.second);
-        vector<vector<int>> old_trans = Build_transm_network(old_tree);
-        int old_s = Calc_s_metric(old_trans);
+        vec_vec old_t_net = Build_t_net(old_tree);
+        int old_s = Calc_s_metric(old_t_net);
         s_metrics.push_back(old_s);
-        vector<vector<int>> new_trans = Build_transm_network(new_tree_v.first);
-        int new_s = Calc_s_metric(new_trans);
+
+        Graph new_tree(old_tree);
+        int rec_v = Recol_rand_v(new_tree);
+        vec_vec new_t_net = Build_t_net(new_tree);
+        recolored_vertices.push_back(rec_v);
+
+        int new_s = Calc_s_metric(new_t_net);
         if (rand() % (old_s + new_s) > old_s) {
-            old_tree = new_tree_v.first;
+            old_tree = new_tree;
         }
     }
-    return old_tree;
 }
