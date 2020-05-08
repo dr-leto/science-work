@@ -19,7 +19,7 @@ int Get_random_vertex(const set<int>& vertices) {
     return v_vec[rand() % vertices.size()];
 }
 
-int Color_random_vertex(Graph& tree) {
+int Recolor_random_vertex(Graph& tree) {
     set<int> v_rec = Get_vertices_to_recolor(tree);
     int cur_v = Get_random_vertex(v_rec);
     int first_v = cur_v;
@@ -49,30 +49,25 @@ int Color_random_vertex(Graph& tree) {
     return first_v;
 }
 
-vector<vector<int>> Build_transm_network(const vector<int>& transm_tree) {
-    int max_val = *std::max_element(transm_tree.begin(), transm_tree.end() - 1);
-    vector<vector<int>> transm_network(max_val + 1, vector<int>());
+vector<vector<int>> Build_transm_network(const Graph& tree) {
+    int max_val = *std::max_element(tree.ind_to_color.begin(), tree.ind_to_color.end() - 1);
+    vec_vec t_net(max_val + 1, vector<int>()); // we assume that each of n colors match only one number from [1, n]
     set<pair<int, int>> pairs;
-    for (unsigned int i = 0; i < (transm_tree.size() - 1) / 2; ++i) {
-        int left_child_id = 2 * i + 1;
-        int right_child_id = 2 * i + 2;
-        if (transm_tree[i] != -1) {
-            if (transm_tree[left_child_id] != -1 && (transm_tree[left_child_id] != transm_tree[i])) {
-                pairs.insert(make_pair(transm_tree[i], transm_tree[left_child_id]));
-            }
-            if (transm_tree[right_child_id] != -1 && (transm_tree[right_child_id] != transm_tree[i])) {
-                pairs.insert(make_pair(transm_tree[i], transm_tree[right_child_id]));
-            }
+    for (unsigned int i = 1; i < tree.adj_list.size(); ++i) {
+        int parent_v = tree.adj_list[i][0];
+        int parent_col = tree.ind_to_color[parent_v];
+        if (tree.ind_to_color[i] != parent_col) {
+            pairs.insert(make_pair(tree.ind_to_color[i], parent_col));
         }
     }
     while (!pairs.empty()) {
         pair<int, int> p = *pairs.begin();
-        transm_network[p.first].push_back(p.second);
-        transm_network[p.second].push_back(p.first);
+        t_net[p.first].push_back(p.second);
+        t_net[p.second].push_back(p.first);
         pairs.erase(p);
         pairs.erase(make_pair(p.second, p.first));
     }
-    return transm_network;
+    return t_net;
 }
 
 int Calc_s_metric(vector<vector<int>> transm_network) {
@@ -95,7 +90,7 @@ vector<int> MCMC_run(const vector<int>& tree, int n, vector<int>& s_metrics, vec
     vector<int> old_tree(tree);
     srand(time(NULL));
     for (int i = 0; i < n; ++i) {
-        pair<vector<int>, int> new_tree_v = Color_random_vertex(old_tree);
+        pair<vector<int>, int> new_tree_v = Recolor_random_vertex(old_tree);
         recolored_vertices.push_back(new_tree_v.second);
         vector<vector<int>> old_trans = Build_transm_network(old_tree);
         int old_s = Calc_s_metric(old_trans);
