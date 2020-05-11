@@ -48,3 +48,11 @@ void Save_t_net(vec_vec transm_net, string path, int s = 0) {
     }
     fout.close();
 }
+
+void Save_arr(vec arr, string path) {
+    ofstream fout(path);
+    for (int el : arr) {
+        fout << el << " ";
+    }
+    fout.close();
+}
