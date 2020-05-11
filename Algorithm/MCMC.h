@@ -1,5 +1,6 @@
 #pragma once
 #include "Header.h"
+#include "Tree_generation.h"
 
 set<int> Get_v_to_recol(const Graph& tree) {
     set <int> vertices_to_recolor;
@@ -86,21 +87,24 @@ int Calc_s_metric(vec_vec transm_network) {
     return s_metric;
 }
 
-void MCMC_run(const Graph& tree, int n, vec& s_metrics, vec& rec_vs) {
-    Graph old_tree(tree);
+Graph MCMC_run(Graph& tree, int n, vec& s_metrics, vec& rec_vs) {
+    Shape_random_color(tree, 0);
+    Graph base_tree(tree);
     for (int i = 0; i < n; ++i) {
-        vec_vec old_t_net = Build_t_net(old_tree);
+        printf("Iteration %d \n", i);
+        vec_vec old_t_net = Build_t_net(base_tree);
         int old_s = Calc_s_metric(old_t_net);
         s_metrics.push_back(old_s);
 
-        Graph new_tree(old_tree);
+        Graph new_tree(base_tree);
         int rec_v = Recol_rand_v(new_tree);
         vec_vec new_t_net = Build_t_net(new_tree);
         rec_vs.push_back(rec_v);
 
         int new_s = Calc_s_metric(new_t_net);
         if (rand() % (old_s + new_s) > old_s) {
-            old_tree = new_tree;
+            base_tree = new_tree;
         }
     }
+    return base_tree;
 }
