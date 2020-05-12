@@ -23,32 +23,47 @@ int Get_rand_v(const set<int>& vertices) {
 }
 
 int Recol_rand_v(Graph& tree) {
-    set<int> v_rec = Get_v_to_recol(tree);
-    int cur_v = Get_rand_v(v_rec);
-    int first_v = cur_v;
+    set<int> rec_vs = Get_v_to_recol(tree);
+    int cur_v = Get_rand_v(rec_vs);
+    int first_v = cur_v, child_v, parent_v = tree.adj_list[cur_v][0];
 
-    int left_col = tree.ind_to_color[tree.adj_list[cur_v][1]];
-    int right_col = tree.ind_to_color[tree.adj_list[cur_v][2]];
-    int cur_col = tree.ind_to_color[cur_v];
-    int new_col = (cur_col != left_col) ? left_col : right_col;
-    tree.ind_to_color[cur_v] = new_col;
-    while(cur_v != 0) {
-        int parent_v = tree.adj_list[cur_v][0];
-        int parent_col = tree.ind_to_color[parent_v];
-
-        if (tree.adj_list[parent_v].size() == 2) {
-            tree.ind_to_color[parent_v] = new_col;
-        } else {
-            int neighboor_v = (tree.adj_list[parent_v][1] != cur_v) ? tree.adj_list[parent_v][1] : tree.adj_list[parent_v][2];
-            int neighboor_col = tree.ind_to_color[neighboor_v];
-            if (parent_col != new_col && parent_col != neighboor_col) { // Rewrite according to the new logic of 3-son vertices presense
-                tree.ind_to_color[parent_v] = (rand() % 2 == 0) ? new_col : neighboor_col;
-            } else {
-                break;
-            }
+    do {
+        set<int> child_cols;
+        for (unsigned int i = 1; i < tree.adj_list[cur_v].size(); ++i) {
+            child_cols.insert(tree.ind_to_color[tree.adj_list[cur_v][i]]);
         }
+        int cur_col = tree.ind_to_color[cur_v];
+        if (cur_v == first_v) {
+            child_cols.erase(cur_col);
+        }
+        if (child_cols.find(cur_col) == child_cols.end()) {
+            int new_col = Get_rand_v(child_cols);
+            tree.ind_to_color[cur_v] = new_col;
+        } else {
+            break;
+        }
+        child_v = cur_v;
         cur_v = parent_v;
-    }
+        parent_v = tree.adj_list[cur_v][0];
+    } while (child_v != 0); // same as child_v != parent_v
+    
+    //while(cur_v != 0) {
+    //    int parent_v = tree.adj_list[cur_v][0]; // we assume here, that the very first vertex would be parent of the current one (Pre-order traversal). Otherwise that leads to errors
+    //    int parent_col = tree.ind_to_color[parent_v];
+
+    //    if (tree.adj_list[parent_v].size() == 2) {
+    //        tree.ind_to_color[parent_v] = new_col;
+    //    } else {
+    //        int neighboor_v = (tree.adj_list[parent_v][1] != cur_v) ? tree.adj_list[parent_v][1] : tree.adj_list[parent_v][2];
+    //        int neighboor_col = tree.ind_to_color[neighboor_v];
+    //        if (parent_col != new_col && parent_col != neighboor_col) { // Rewrite according to the new logic of 3-son vertices presense
+    //            tree.ind_to_color[parent_v] = (rand() % 2 == 0) ? new_col : neighboor_col;
+    //        } else {
+    //            break;
+    //        }
+    //    }
+    //    cur_v = parent_v;
+    //}
     return first_v;
 }
 
