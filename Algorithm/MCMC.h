@@ -4,12 +4,14 @@
 
 set<int> Get_v_to_recol(const Graph& tree) {
     set <int> vertices_to_recolor;
-
-    for (unsigned int i = 0; i < tree.adj_list.size(); ++i) {
-        if (tree.adj_list[i].size() == 3
-            && tree.ind_to_color[tree.adj_list[i][1]] != tree.ind_to_color[tree.adj_list[i][2]]) {
+    int i = 0;
+    for (vec neighboors : tree.adj_list) {
+        neighboors.erase(neighboors.begin());
+        set<int> unq_childs(neighboors.begin(), neighboors.end());
+        if (unq_childs.size() > 1) {
             vertices_to_recolor.insert(i);
         }
+        ++i;
     }
     return vertices_to_recolor;
 }
