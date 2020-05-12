@@ -39,7 +39,7 @@ int Recol_rand_v(Graph& tree) {
         } else {
             int neighboor_v = (tree.adj_list[parent_v][1] != cur_v) ? tree.adj_list[parent_v][1] : tree.adj_list[parent_v][2];
             int neighboor_col = tree.ind_to_color[neighboor_v];
-            if (parent_col != new_col && parent_col != neighboor_col) {
+            if (parent_col != new_col && parent_col != neighboor_col) { // Rewrite according to the new logic of 3-son vertices presense
                 tree.ind_to_color[parent_v] = (rand() % 2 == 0) ? new_col : neighboor_col;
             } else {
                 break;
