@@ -7,8 +7,11 @@ set<int> Get_v_to_recol(const Graph& tree) {
     int i = 0;
     for (vec neighboors : tree.adj_list) {
         neighboors.erase(neighboors.begin());
-        set<int> unq_childs(neighboors.begin(), neighboors.end());
-        if (unq_childs.size() > 1) {
+        set<int> unq_child_cols;
+        for (int child_v : neighboors) {
+            unq_child_cols.insert(tree.ind_to_color[child_v]);
+        }
+        if (unq_child_cols.size() > 1) {
             vertices_to_recolor.insert(i);
         }
         ++i;
@@ -46,24 +49,6 @@ int Recol_rand_v(Graph& tree) {
         cur_v = parent_v;
         parent_v = tree.adj_list[cur_v][0];
     } while (child_v != 0); // same as child_v != parent_v
-    
-    //while(cur_v != 0) {
-    //    int parent_v = tree.adj_list[cur_v][0]; // we assume here, that the very first vertex would be parent of the current one (Pre-order traversal). Otherwise that leads to errors
-    //    int parent_col = tree.ind_to_color[parent_v];
-
-    //    if (tree.adj_list[parent_v].size() == 2) {
-    //        tree.ind_to_color[parent_v] = new_col;
-    //    } else {
-    //        int neighboor_v = (tree.adj_list[parent_v][1] != cur_v) ? tree.adj_list[parent_v][1] : tree.adj_list[parent_v][2];
-    //        int neighboor_col = tree.ind_to_color[neighboor_v];
-    //        if (parent_col != new_col && parent_col != neighboor_col) { // Rewrite according to the new logic of 3-son vertices presense
-    //            tree.ind_to_color[parent_v] = (rand() % 2 == 0) ? new_col : neighboor_col;
-    //        } else {
-    //            break;
-    //        }
-    //    }
-    //    cur_v = parent_v;
-    //}
     return first_v;
 }
 
@@ -108,7 +93,9 @@ Graph MCMC_run(Graph& tree, int n, vec& s_metrics, vec& rec_vs) {
     Shape_random_color(tree, 0);
     Graph base_tree(tree);
     for (int i = 0; i < n; ++i) {
-        printf("Iteration %d \n", i);
+        if (i % (n / 100) == 0) {
+            printf("%d perc completed \n", i * 100 / n);
+        }
         vec_vec old_t_net = Build_t_net(base_tree);
         int old_s = Calc_s_metric(old_t_net);
         s_metrics.push_back(old_s);
