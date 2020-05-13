@@ -32,11 +32,9 @@ Graph Read_graph(string path) {
     return Matrix_to_graph(matrix);
 }
 
-void Save_t_net(vec_vec transm_net, string path, int s = 0) {
+void Save_t_net(vec_vec transm_net, string path, int s = 0, int top_v_col = 0) {
     ofstream fout(path);
-    if (s != 0) {
-        fout << s << endl;
-    }
+    fout << s << " " << top_v_col << endl;
     for (unsigned int i = 0; i < transm_net.size(); ++i) {
         if (!transm_net[i].empty()) {
             fout << i;
