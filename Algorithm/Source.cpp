@@ -2,45 +2,59 @@
 #include "Save_load.h"
 #include "MCMC.h"
 
-
-void Run_test() {
-    // vector<int> shape_sample{ 5, 2, 5, 2, 4, 5, 8, 1, 2, 4, 4, 5, 6, 8, 8};
-    int max_height = 17;
-    int col_num = 5;
+void Run_integration_test() {
+    string outbreak_name = "1/";
+    string outbreak_type = "test/";
+    string raw_graph_path = "in/" + outbreak_type + outbreak_name + "raw_graph.txt";
+    vec_vec adj_list{
+        {0, 1, 8},
+        {0, 2, 5},
+        {1, 3, 4},
+        {2},
+        {2},
+        {1, 6, 7},
+        {5},
+        {5},
+        {0, 9, 12},
+        {8, 10, 11},
+        {9},
+        {9},
+        {8, 13, 14},
+        {12},
+        {12}
+    };
+    vec col_to_ind{ 0, 0, 0, 1, 2, 0, 3, 3, 0, 0, 5, 6, 0, 7, 7 };
+    Graph raw_graph(adj_list, col_to_ind);
+    Save_graph(raw_graph, raw_graph_path);
+    Graph graph = Read_graph(raw_graph_path);
+    vec s_metrics;
     srand(time(NULL));
-    // Arr_to_graph(shape_sample, 0, 0, tree);
-    // Leaves_random_color(tree, col_num);
-    // Shape_random_color(tree, 0);
-    Graph tree = Generate_random_shape(max_height, col_num);
-    vec metrics, rec_v;
-    Graph best_tree = MCMC_run(tree, 100, metrics, rec_v);
-    //printf("Saving graph... \n");
-    //Save_graph(tree, "tree.txt");
-    //printf("Saving best graph... \n");
-    //Save_graph(best_tree, "best_tree.txt");
-    //printf("Loading graph... \n");
-    //Graph read_tree = Read_graph("tree.txt");
-    //printf("Loading best graph... \n");
-    //Graph read_best_tree = Read_graph("best_tree.txt");
-    int a = 5;
+    Graph result = MCMC_run(graph, 300, s_metrics);
+    vec_vec t_net = Build_t_net(result);
+    int top_v_col = result.ind_to_color[0];
+    int s_metric = Calc_s_metric(t_net);
+    string prefix = "out/" + outbreak_type + outbreak_name;
+    Save_graph(result, prefix + "mcmc_best_tree.txt");
+    Save_t_net(t_net, prefix + "t_net.txt", s_metric, top_v_col);
+    Save_arr(s_metrics, prefix + "s_metrics.txt");
 }
 
 void Run_hepatit() {
-    vector<int> s_metrics;
-    vector<int> rec_vs;
-    string outbreak_name = "NH";
-    Graph outbreak = Read_graph("in/hepatit/" + outbreak_name + "/matrix.txt");
-    Graph result = MCMC_run(outbreak, 100000, s_metrics, rec_vs);
-    vec_vec transm_net = Build_t_net(result);
-    int s_metric = Calc_s_metric(transm_net);
-    string prefix = "out/hepatit/" + outbreak_name;
-    Save_graph(result, prefix + "/mcmc_best_tree.txt");
-    Save_t_net(transm_net, prefix + "/t_net.txt", s_metric);
-    Save_arr(s_metrics, prefix + "/s_metrics.txt");
-    Save_arr(rec_vs, prefix + "/rec_vs.txt");
+    vec s_metrics;
+    string outbreak_name = "BB/";
+    string outbreak_type = "hepatit/";
+
+    Graph outbreak = Read_graph("in/" + outbreak_type + outbreak_name + "matrix.txt");
+    Graph result = MCMC_run(outbreak, 100000, s_metrics);
+    vec_vec t_net = Build_t_net(result);
+    int s_metric = Calc_s_metric(t_net);
+    string prefix = "out/" + outbreak_type + outbreak_name;
+    Save_graph(result, prefix + "mcmc_best_tree.txt");
+    Save_t_net(t_net, prefix + "t_net.txt", s_metric);
+    Save_arr(s_metrics, prefix + "s_metrics.txt");
 }
 
 int main() {
-    Run_hepatit();
+    Run_integration_test();
     return 0;
 }
