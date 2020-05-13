@@ -89,13 +89,20 @@ int Calc_s_metric(vec_vec transm_network) {
     return s_metric;
 }
 
-Graph MCMC_run(Graph& tree, int n, vec& s_metrics, vec& rec_vs) {
+void print_perc(int i, int n) {
+    if (n < 100) {
+        printf("%d it completed \n", i);
+    }
+    else if (i % (n / 100) == 0) {
+        printf("%d perc completed \n", i * 100 / n);
+    }
+}
+
+Graph MCMC_run(Graph& tree, int n, vec& s_metrics) {
     Shape_random_color(tree, 0);
     Graph base_tree(tree);
     for (int i = 0; i < n; ++i) {
-        if (i % (n / 100) == 0) {
-            printf("%d perc completed \n", i * 100 / n);
-        }
+        print_perc(i, n);
         vec_vec old_t_net = Build_t_net(base_tree);
         int old_s = Calc_s_metric(old_t_net);
         s_metrics.push_back(old_s);
@@ -103,7 +110,6 @@ Graph MCMC_run(Graph& tree, int n, vec& s_metrics, vec& rec_vs) {
         Graph new_tree(base_tree);
         int rec_v = Recol_rand_v(new_tree);
         vec_vec new_t_net = Build_t_net(new_tree);
-        rec_vs.push_back(rec_v);
 
         int new_s = Calc_s_metric(new_t_net);
         if (rand() % (old_s + new_s) > old_s) {

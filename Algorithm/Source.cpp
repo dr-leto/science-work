@@ -28,7 +28,7 @@ void Run_integration_test() {
     Save_graph(raw_graph, raw_graph_path);
     Graph graph = Read_graph(raw_graph_path);
     vec s_metrics;
-    srand(time(NULL));
+    //srand(time(NULL));
     Graph result = MCMC_run(graph, 300, s_metrics);
     vec_vec t_net = Build_t_net(result);
     int top_v_col = result.ind_to_color[0];
