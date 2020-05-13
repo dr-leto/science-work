@@ -28,9 +28,9 @@ void Run_test() {
 void Run_hepatit() {
     vector<int> s_metrics;
     vector<int> rec_vs;
-    string outbreak_name = "BB";
+    string outbreak_name = "NH";
     Graph outbreak = Read_graph("in/hepatit/" + outbreak_name + "/matrix.txt");
-    Graph result = MCMC_run(outbreak, 10000, s_metrics, rec_vs);
+    Graph result = MCMC_run(outbreak, 100000, s_metrics, rec_vs);
     vec_vec transm_net = Build_t_net(result);
     int s_metric = Calc_s_metric(transm_net);
     string prefix = "out/hepatit/" + outbreak_name;

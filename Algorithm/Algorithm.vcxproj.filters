@@ -23,5 +23,14 @@
     <ClInclude Include="Header.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MCMC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Save_load.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree_generation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
