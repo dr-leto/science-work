@@ -100,7 +100,7 @@ Graph Generate_random_shape(int max_height, int col_num) {
 
 int Shape_random_color(Graph& shape, int cur_v) {
     vec colors;
-    if (shape.adj_list[cur_v].size() > 1) { // we assume here, that the very first vertex would be parent of the current one (Pre-order traversal). Otherwise that leads to errors
+    if (shape.adj_list[cur_v].size() > 1) {
         for (unsigned int i = 1; i < shape.adj_list[cur_v].size(); ++i) {
             int col = Shape_random_color(shape, shape.adj_list[cur_v][i]);
             colors.push_back(col);
