@@ -99,20 +99,14 @@ Graph Generate_random_shape(int max_height, int col_num) {
 }
 
 int Shape_random_color(Graph& shape, int cur_v) {
-    switch (shape.adj_list[cur_v].size()) {
-    case 2:
-    {
-        int col = Shape_random_color(shape, shape.adj_list[cur_v][1]);
-        shape.ind_to_color[cur_v] = col;
+    vec colors;
+    if (shape.adj_list[cur_v].size() > 1) {
+        for (unsigned int i = 1; i < shape.adj_list[cur_v].size(); ++i) {
+            int col = Shape_random_color(shape, shape.adj_list[cur_v][i]);
+            colors.push_back(col);
+        }
+        shape.ind_to_color[cur_v] = colors[rand() % colors.size()];
     }
-    break;
-    case 3:
-    {
-        int l_col = Shape_random_color(shape, shape.adj_list[cur_v][1]);
-        int r_col = Shape_random_color(shape, shape.adj_list[cur_v][2]);
-        shape.ind_to_color[cur_v] = (rand() % 2 == 0) ? l_col : r_col;
-    }
-    break;
-    }
+    
     return shape.ind_to_color[cur_v];
 }
