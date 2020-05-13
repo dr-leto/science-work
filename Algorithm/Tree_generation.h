@@ -35,12 +35,12 @@ Graph Matrix_to_graph(const vec_vec& matrix) {
     int n = matrix.size();
     vec_vec adj_list(n, vec());
     adj_list[0].push_back(0);
-    vec ind_to_color(n, -1);
-    for (unsigned int i = 0; i < n; ++i) {
-        for (unsigned int j = 0; j < n; ++j) {
+    vec ind_to_color(n, 0);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
             if (matrix[i][j] != -1) {
                 adj_list[i].push_back(j); // we assume here, that the very first vertex would be parent of the current one (Pre-order traversal). Otherwise that leads to errors
-                if (ind_to_color[j] == -1) {
+                if (ind_to_color[j] == 0) {
                     ind_to_color[j] = matrix[i][j];
                 }
             }
