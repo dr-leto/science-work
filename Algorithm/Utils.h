@@ -31,3 +31,35 @@ Graph Matrix_to_graph(const vec_vec& matrix) {
     return Graph(adj_list, ind_to_color);
 }
 
+void print_perc(int i, int n) {
+    if (n < 100) {
+        printf("%d it completed \n", i);
+    }
+    else if (i % (n / 100) == 0) {
+        printf("%d perc completed \n", i * 100 / n);
+    }
+}
+
+void Appr_cycles_count_help(const vec_vec& t_net, int v, int prev_v, vec& vs, vector<bool>& visited, vector<bool>& used) { //ok, fuck it, simply take the tree with lowest edge number!
+    if (visited[v] && !used[v]) {
+        ++vs[v];
+    }
+    else {
+        visited[v] = true;
+        for (int neighboor : t_net[v]) {
+            if (neighboor != prev_v) {
+                Appr_cycles_count_help(t_net, neighboor, v, vs, visited, used);
+            }
+        }
+        used[v] = true;
+    }
+}
+
+int Appr_cycles_count(const vec_vec& t_net) {
+    vec vs(t_net.size(), 0);
+    vector<bool> visited(t_net.size(), false), used(visited);
+    Appr_cycles_count_help(t_net, 1, 0, vs, visited, used);
+
+    return accumulate(vs.begin(), vs.end(), 0);
+}
+
