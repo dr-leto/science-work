@@ -1,6 +1,7 @@
 #pragma once
 #include "Header.h"
 #include "Tree_generation.h"
+#include "Utils.h"
 
 set<int> Get_v_to_recol(const Graph& tree) {
     set <int> vertices_to_recolor;
@@ -73,9 +74,9 @@ vec_vec Build_t_net(const Graph& tree) {
     return t_net;
 }
 
-int Calc_s_metric(vec_vec transm_network) {
+int Calc_s_metric(vec_vec t_net) {
     vec deg_arr;
-    for (const vec& net : transm_network) {
+    for (const vec& net : t_net) {
         if (!net.empty()) {
             deg_arr.push_back(net.size());
         }
@@ -89,31 +90,36 @@ int Calc_s_metric(vec_vec transm_network) {
     return s_metric;
 }
 
-void print_perc(int i, int n) {
-    if (n < 100) {
-        printf("%d it completed \n", i);
-    }
-    else if (i % (n / 100) == 0) {
-        printf("%d perc completed \n", i * 100 / n);
-    }
-}
-
 Graph MCMC_run(Graph& tree, int n, vec& s_metrics) {
     Shape_random_color(tree, 0);
     Graph base_tree(tree);
+    vec_vec base_t_net = Build_t_net(base_tree);
+    int base_s = Calc_s_metric(base_t_net);
+    int base_edges_cnt = 0;
+    for (const vec& neighbor : base_t_net) {
+        base_edges_cnt += neighbor.size();
+    }
+    base_edges_cnt /= 2;
+    s_metrics.push_back(base_s);
+
     for (int i = 0; i < n; ++i) {
         print_perc(i, n);
-        vec_vec old_t_net = Build_t_net(base_tree);
-        int old_s = Calc_s_metric(old_t_net);
-        s_metrics.push_back(old_s);
 
         Graph new_tree(base_tree);
         int rec_v = Recol_rand_v(new_tree);
         vec_vec new_t_net = Build_t_net(new_tree);
-
         int new_s = Calc_s_metric(new_t_net);
-        if (rand() % (old_s + new_s) > old_s) {
+        int new_edges_cnt = 0;
+        for (const vec& neighbor : new_t_net) {
+            new_edges_cnt += neighbor.size();
+        }
+        new_edges_cnt /= 2;
+
+        if (new_edges_cnt < base_edges_cnt || new_s > base_s || rand() % 100 == 0) {
             base_tree = new_tree;
+            base_t_net = new_t_net;
+            base_s = new_s;
+            base_edges_cnt = new_edges_cnt;
         }
     }
     return base_tree;
